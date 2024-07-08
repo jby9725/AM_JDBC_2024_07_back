@@ -16,16 +16,15 @@ public class JDBC_InsertTest {
             System.out.println("연결 성공!");
 
             // 데이터 삽입..
-            String sql = "INSERT INTO article \n" +
+            String sql = "INSERT INTO article\n" +
                     "SET regDate = NOW(),\n" +
-                    "updateDate = NOW(),\n" +
-                    "title = '제목01',\n" +
-                    "`body` = '내용01';";
+                    "    updateDate = NOW(),\n" +
+                    "    title = CONCAT('제목', SUBSTRING(RAND() * 1000 FROM 1 FOR 2)),\n" +
+                    "    `body` = CONCAT('내용', SUBSTRING(RAND() * 1000 FROM 1 FOR 2));";
 
             PreparedStatement pstmt = conn.prepareStatement(sql);
-            pstmt.executeUpdate();
+            int affectedRows = pstmt.executeUpdate(); // 적용된 열의 수
             pstmt.close();
-
 
         } catch (ClassNotFoundException e) {
             System.out.println("드라이버 로딩 실패" + e);
