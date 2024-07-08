@@ -1,21 +1,31 @@
 package org.koreait;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
 
-public class JDBC_ConnectTest {
+public class JDBC_InsertTest {
 
     public static void main(String[] args) {
         Connection conn = null;
 
         try {
+            // 연결..
             Class.forName("org.mariadb.jdbc.Driver");
-            String url = "jdbc:mariadb://localhost:3306/ArticleManager";
-
-             // String url = "jdbc:mariadb://127.0.0.1:3306/ArticleManager?useUnicode=true&characterEncoding=utf8&autoReconnect=true&serverTimezone=Asia/Seoul";
+            // String url = "jdbc:mariadb://localhost:3306/ArticleManager";
+            String url = "jdbc:mariadb://localhost:3306/ArticleManager?useUnicode=true&characterEncoding=utf8&autoReconnect=true&serverTimezone=Asia/Seoul";
             conn = DriverManager.getConnection(url, "root", "");
             System.out.println("연결 성공!");
+
+            // 데이터 삽입..
+            String sql = "INSERT INTO article \n" +
+                    "SET regDate = NOW(),\n" +
+                    "updateDate = NOW(),\n" +
+                    "title = '제목01',\n" +
+                    "`body` = '내용01';";
+
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.executeUpdate();
+            pstmt.close();
+
 
         } catch (ClassNotFoundException e) {
             System.out.println("드라이버 로딩 실패" + e);
