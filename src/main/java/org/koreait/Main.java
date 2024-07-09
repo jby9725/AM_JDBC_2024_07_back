@@ -16,6 +16,7 @@ public class Main {
     static String userName = "root";
     static String password = "";
     static Connection conn = null;
+    static PreparedStatement pstmt = null;
 
     public static void main(String[] args) {
 
@@ -24,7 +25,6 @@ public class Main {
             if (conn != null) {
                 System.out.println("Connected to database");
             }
-
 
             while (sys_status == 0) {
                 System.out.print("명령어 > ");
@@ -63,86 +63,51 @@ public class Main {
 
                 } else if (cmd.equals("article list")) {
                     // 조회...
-                    // 실행할 쿼리
-                    String sql = "SELECT id, regDate, updateDate, title, `body`\n" +
-                            "FROM article;";
-                    //Statement 생성 후 실행할 쿼리정보 등록
-                    PreparedStatement pstmt = conn.prepareStatement(sql);
-                    //결과를 담을 ResultSet 생성 후 결과 담기
-                    ResultSet rs = pstmt.executeQuery();
+                    List<Article> articleList = getArticleList();
 
-                    while (rs.next()) {
-                        Article rsArticle = new Article();
-
-                        rsArticle.setId(rs.getInt("id"));
-                        rsArticle.setRegDate(rs.getString("regDate"));
-                        rsArticle.setUpdateDate(rs.getString("updateDate"));
-                        rsArticle.setTitle(rs.getString("title"));
-                        rsArticle.setBody(rs.getString("body"));
-
-                        articles.add(rsArticle);
-                    }
-
-                    if (articles.size() == 0) {
+                    if (articleList.size() == 0) {
                         System.out.println("게시글 없음");
                         continue;
                     }
                     System.out.println(" 번호 /    제목    /     내용 /        작성 날짜        /        수정 날짜        / ");
-                    for (Article article : articles) {
+                    for (Article article : articleList) {
                         System.out.printf(" %3d /%8s /%10s / %21s / %21s    \n", article.getId(), article.getTitle(), article.getBody(), article.getRegDate(), article.getUpdateDate());
                     }
-                    articles.clear();
+                    articleList.clear();
 
-                } else if (cmd.equals("article edit")) {
+                } else if (cmd.equals("article modify")) {
 
                     System.out.print("수정할 게시물의 id : ");
                     int id = scanner.nextInt();
                     scanner.nextLine();
 
                     // 조회...
-                    // 실행할 쿼리
-                    String sql = "SELECT id, regDate, updateDate, title, `body`\n" +
-                            "FROM article WHERE id = " + id + ";\n";
-                    //Statement 생성 후 실행할 쿼리정보 등록
-                    PreparedStatement pstmt = conn.prepareStatement(sql);
-                    //결과를 담을 ResultSet 생성 후 결과 담기
-                    ResultSet rs = pstmt.executeQuery();
+                    List<Article> articleList = getArticleList(id);
 
-                    while (rs.next()) {
-                        Article rsArticle = new Article();
-
-                        rsArticle.setId(rs.getInt("id"));
-                        rsArticle.setRegDate(rs.getString("regDate"));
-                        rsArticle.setUpdateDate(rs.getString("updateDate"));
-                        rsArticle.setTitle(rs.getString("title"));
-                        rsArticle.setBody(rs.getString("body"));
-
-                        articles.add(rsArticle);
-                    }
-
-                    if (articles.size() == 0) {
+                    if (articleList.size() == 0) {
                         System.out.println("게시글 없음");
                         continue;
                     }
                     System.out.println("== 검색 결과 ==");
                     System.out.println(" 번호 /    제목    /     내용 /        작성 날짜        /        수정 날짜        / ");
-                    for (Article article : articles) {
+                    for (Article article : articleList) {
                         System.out.printf(" %3d /%8s /%10s / %21s / %21s    \n", article.getId(), article.getTitle(), article.getBody(), article.getRegDate(), article.getUpdateDate());
                     }
-                    articles.clear();
+                    articleList.clear();
 
                     System.out.print("새 게시물의 제목 : ");
                     String title = scanner.nextLine();
                     System.out.print("새 게시물의 내용 : ");
                     String body = scanner.nextLine();
 
-                    System.out.println("title = " + title);
-                    System.out.println("body = " + body);
+//                    System.out.println("title = " + title);
+//                    System.out.println("body = " + body);
 
-                    sql = "UPDATE article SET" +
-                            " `title` = '" + title + "', `body` = '" + body + "', updateDate = NOW() WHERE id = " + id + ";";
+                    String sql = "UPDATE article" +
+                            " SET `title` = '" + title + "', `body` = '" + body + "', updateDate = NOW()" +
+                            " WHERE id = " + id + ";";
 
-                    System.out.println("수정 sql : " + sql);
+//                    System.out.println("수정 sql : " + sql);
 
                     pstmt = conn.prepareStatement(sql);
                     int affectedRows = pstmt.executeUpdate();
@@ -164,7 +129,13 @@ public class Main {
                     pstmt = conn.prepareStatement(sql);
                     int affectedRows = pstmt.executeUpdate(); // 적용된 열의 수
                     pstmt.close();
-                    System.out.println("Delete) data affected: " + affectedRows);
+
+//                    System.out.println("Delete) data affected: " + affectedRows);
+                    if (affectedRows == 0) {
+                        System.out.printf("%d번 게시물은 없습니다.\n", id);
+                    } else {
+                        System.out.printf("%d번 게시물이 삭제되었습니다.\n", id);
+                    }
 
                 } else {
                     System.out.println("잘못된 명령어");
@@ -175,5 +146,73 @@ public class Main {
             e.printStackTrace();
 //            throw new RuntimeException(e);
         }
+    }
+
+    static public List<Article> getArticleList() {
+        List<Article> articles = new ArrayList<>();
+
+        // 조회...
+        // 실행할 쿼리
+        String sql = "SELECT id, regDate, updateDate, title, `body`\n" +
+                "FROM article;";
+        //Statement 생성 후 실행할 쿼리정보 등록
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = conn.prepareStatement(sql);
+            //결과를 담을 ResultSet 생성 후 결과 담기
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                Article rsArticle = new Article();
+
+                rsArticle.setId(rs.getInt("id"));
+                rsArticle.setRegDate(rs.getString("regDate"));
+                rsArticle.setUpdateDate(rs.getString("updateDate"));
+                rsArticle.setTitle(rs.getString("title"));
+                rsArticle.setBody(rs.getString("body"));
+
+                articles.add(rsArticle);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+
+        return articles;
+    }
+
+    static public List<Article> getArticleList(int id) {
+        List<Article> articles = new ArrayList<>();
+
+        // 조회...
+        // 실행할 쿼리
+        String sql = "SELECT id, regDate, updateDate, title, `body`\n" +
+                "FROM article WHERE id = " + id + ";\n";
+        //Statement 생성 후 실행할 쿼리정보 등록
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = conn.prepareStatement(sql);
+            //결과를 담을 ResultSet 생성 후 결과 담기
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                Article rsArticle = new Article();
+
+                rsArticle.setId(rs.getInt("id"));
+                rsArticle.setRegDate(rs.getString("regDate"));
+                rsArticle.setUpdateDate(rs.getString("updateDate"));
+                rsArticle.setTitle(rs.getString("title"));
+                rsArticle.setBody(rs.getString("body"));
+
+                articles.add(rsArticle);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+
+        return articles;
     }
 }
