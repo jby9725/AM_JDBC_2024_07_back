@@ -7,7 +7,16 @@ public class Article {
     private String regDate;
     private String updateDate;
 
+    public Article() {
+    }
 
+    public Article(int id, String title, String body, String regDate, String updateDate) {
+        this.id = id;
+        this.title = title;
+        this.body = body;
+        this.regDate = regDate;
+        this.updateDate = updateDate;
+    }
 
     public String getUpdateDate() {
         return updateDate;

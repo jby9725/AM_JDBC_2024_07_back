@@ -20,7 +20,7 @@ public class Main {
     public static void main(String[] args) {
 
         try {
-            Connection conn = DriverManager.getConnection(url, userName, password);
+            conn = DriverManager.getConnection(url, userName, password);
             if (conn != null) {
                 System.out.println("Connected to database");
             }
@@ -97,6 +97,7 @@ public class Main {
 
                     System.out.print("수정할 게시물의 id : ");
                     int id = scanner.nextInt();
+                    scanner.nextLine();
 
                     // 조회...
                     // 실행할 쿼리
@@ -130,7 +131,6 @@ public class Main {
                     }
                     articles.clear();
 
-                    scanner.nextLine();
                     System.out.print("새 게시물의 제목 : ");
                     String title = scanner.nextLine();
                     System.out.print("새 게시물의 내용 : ");
@@ -154,6 +154,7 @@ public class Main {
 
                     System.out.print("삭제할 게시물의 id : ");
                     int id = scanner.nextInt();
+                    scanner.nextLine();
 
                     String sql = "DELETE FROM article WHERE id = " + id + ";";
                     System.out.println("Delete) sql : " + sql);

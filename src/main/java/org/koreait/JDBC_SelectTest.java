@@ -9,6 +9,7 @@ public class JDBC_SelectTest {
     public static void main(String[] args) {
         Connection conn = null;
         List<Article> articles = new ArrayList<>();
+        ResultSet rs = null;
 
         try {
             // 연결..
@@ -23,7 +24,7 @@ public class JDBC_SelectTest {
             //Statement 생성 후 실행할 쿼리정보 등록
             PreparedStatement pstmt = conn.prepareStatement(sql);
             //결과를 담을 ResultSet 생성 후 결과 담기
-            ResultSet rs = pstmt.executeQuery();
+            rs = pstmt.executeQuery();
 
             while (rs.next()) {
                 Article rsArticle = new Article();
@@ -42,9 +43,9 @@ public class JDBC_SelectTest {
 
             }
             else {
-                System.out.println(" 번호 /    제목    /        작성 날짜        /        수정 날짜        / ");
+                System.out.println(" 번호 /    제목    /        작성 날짜        /        수정 날짜        /    내용");
                 for (Article article : articles) {
-                    System.out.printf(" %3d /%8s / %21s / %21s    \n", article.getId(), article.getTitle(), article.getRegDate(), article.getUpdateDate());
+                    System.out.printf(" %3d /%8s / %21s / %21s/ %s    \n", article.getId(), article.getTitle(), article.getRegDate(), article.getUpdateDate(), article.getBody());
                 }
 
 
