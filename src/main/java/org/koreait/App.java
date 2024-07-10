@@ -81,7 +81,7 @@ public class App {
 
             int id = DBUtil.insert(conn, sql);
 
-            System.out.println(id+ "번 글이 생성되었습니다.");
+            System.out.println(id + "번 글이 생성되었습니다.");
 
         } else if (cmd.equals("article list")) {
             // 조회...
@@ -93,11 +93,11 @@ public class App {
 
             List<Map<String, Object>> articleListMap = DBUtil.selectRows(conn, sql);
 
-            for(Map<String, Object> articleMap : articleListMap) {
+            for (Map<String, Object> articleMap : articleListMap) {
                 articles.add(new Article(articleMap));
             }
 
-            if(articles.size() == 0){
+            if (articles.size() == 0) {
                 System.out.println("게시글 없음");
                 return 0;
             }
@@ -135,43 +135,37 @@ public class App {
             int id = scanner.nextInt();
             scanner.nextLine();
 
-            // 조회...
-            List<Article> articleList = getArticleList(conn, id);
-
-            if (articleList.size() == 0) {
-                System.out.println("게시글 없음");
-//                    continue;
-            }
-            System.out.println("== 검색 결과 ==");
-            System.out.println(" 번호 /    제목    /     내용 /        작성 날짜        /        수정 날짜        / ");
-            for (Article article : articleList) {
-                System.out.printf(" %3d /%8s /%10s / %21s / %21s    \n", article.getId(), article.getTitle(), article.getBody(), article.getRegDate(), article.getUpdateDate());
-            }
-            articleList.clear();
+//            // 조회...
+//            List<Article> articleList = getArticleList(conn, id);
+//
+//            if (articleList.size() == 0) {
+//                System.out.println("게시글 없음");
+////                    continue;
+//            }
+//            System.out.println("== 검색 결과 ==");
+//            System.out.println(" 번호 /    제목    /     내용 /        작성 날짜        /        수정 날짜        / ");
+//            for (Article article : articleList) {
+//                System.out.printf(" %3d /%8s /%10s / %21s / %21s    \n", article.getId(), article.getTitle(), article.getBody(), article.getRegDate(), article.getUpdateDate());
+//            }
+//            articleList.clear();
 
             System.out.print("새 게시물의 제목 : ");
             String title = scanner.nextLine();
             System.out.print("새 게시물의 내용 : ");
             String body = scanner.nextLine();
 
-            // 주의!
-            String sql = "UPDATE article";
-            sql += " SET updateDate = NOW()";
-            if (title.length() > 0) sql += ", `title` = '" + title + "'";
-            if (body.length() > 0) sql += ", `body` = '" + body + "'";
-            sql += " WHERE id = " + id + ";";
+            SecSql sql = new SecSql();
+            sql.append("UPDATE article");
+            sql.append("SET updateDate = NOW()");
+            if (title.length() > 0)
+                sql.append(",title = ?", title);
+            if (body.length() > 0)
+                sql.append(",`body` = ?", body);
+            sql.append("WHERE id = ?", id);
 
-            System.out.println("수정 sql : " + sql);
+            DBUtil.update(conn, sql);
 
-            try {
-
-                pstmt = conn.prepareStatement(sql);
-                int affectedRows = pstmt.executeUpdate();
-                pstmt.close();
-                System.out.println("Edit ) data affected: " + affectedRows);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            System.out.println(id + "번 글이 수정되었습니다.");
 
         } else if (cmd.equals("article delete")) {
 
