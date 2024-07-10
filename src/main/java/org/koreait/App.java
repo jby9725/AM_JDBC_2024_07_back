@@ -115,46 +115,53 @@ public class App {
             scanner.nextLine();
 
             // 조회...
-            List<Article> articleList = getArticleList(conn, id);
+            SecSql sql = new SecSql();
+            sql.append("SELECT *");
+            sql.append("FROM article");
+            sql.append("WHERE id = ?", id);
 
-            if (articleList.size() == 0) {
-                System.out.println("게시글 없음");
-//                    continue;
+            Map<String, Object> articleMap = DBUtil.selectRow(conn, sql);
+
+            if (articleMap.isEmpty()) {
+                System.out.println(id + "번 글은 없습니다.");
+                return 0;
             }
-            System.out.println("== 검색 결과 ==");
-            System.out.println("번호 : " + articleList.get(0).getId());
-            System.out.println("작성 날짜 : " + articleList.get(0).getRegDate());
-            System.out.println("수정 날짜 : " + articleList.get(0).getUpdateDate());
-            System.out.println("제목 : " + articleList.get(0).getTitle());
-            System.out.println("내용 : " + articleList.get(0).getBody());
 
-            articleList.clear();
+            Article article = new Article(articleMap);
+
+            System.out.println("== 검색 결과 ==");
+            System.out.println("번호 : " + article.getId());
+            System.out.println("작성날짜 : " + article.getRegDate());
+            System.out.println("수정날짜 : " + article.getUpdateDate());
+            System.out.println("제목 : " + article.getTitle());
+            System.out.println("내용 : " + article.getBody());
+
+
         } else if (cmd.equals("article modify")) {
 
             System.out.print("수정할 게시물의 id : ");
             int id = scanner.nextInt();
             scanner.nextLine();
 
-//            // 조회...
-//            List<Article> articleList = getArticleList(conn, id);
-//
-//            if (articleList.size() == 0) {
-//                System.out.println("게시글 없음");
-////                    continue;
-//            }
-//            System.out.println("== 검색 결과 ==");
-//            System.out.println(" 번호 /    제목    /     내용 /        작성 날짜        /        수정 날짜        / ");
-//            for (Article article : articleList) {
-//                System.out.printf(" %3d /%8s /%10s / %21s / %21s    \n", article.getId(), article.getTitle(), article.getBody(), article.getRegDate(), article.getUpdateDate());
-//            }
-//            articleList.clear();
+            // 조회...
+            SecSql sql = new SecSql();
+            sql.append("SELECT *");
+            sql.append("FROM article");
+            sql.append("WHERE id = ?", id);
+
+            Map<String, Object> articleMap = DBUtil.selectRow(conn, sql);
+
+            if (articleMap.isEmpty()) {
+                System.out.println(id + "번 글은 없습니다.");
+                return 0;
+            }
 
             System.out.print("새 게시물의 제목 : ");
             String title = scanner.nextLine();
             System.out.print("새 게시물의 내용 : ");
             String body = scanner.nextLine();
 
-            SecSql sql = new SecSql();
+            sql = new SecSql();
             sql.append("UPDATE article");
             sql.append("SET updateDate = NOW()");
             if (title.length() > 0)
@@ -173,26 +180,25 @@ public class App {
             int id = scanner.nextInt();
             scanner.nextLine();
 
-            String sql = "DELETE FROM article WHERE id = " + id + ";";
-            System.out.println("Delete) sql : " + sql);
+            SecSql sql = new SecSql();
+            sql.append("SELECT *");
+            sql.append("FROM article");
+            sql.append("WHERE id = ?", id);
 
-            // Statement 생성 후 실행할 쿼리정보 등록
-            try {
-                pstmt = conn.prepareStatement(sql);
-                pstmt = conn.prepareStatement(sql);
-                int affectedRows = pstmt.executeUpdate(); // 적용된 열의 수
-                pstmt.close();
+            Map<String, Object> articleMap = DBUtil.selectRow(conn, sql);
 
-//                    System.out.println("Delete) data affected: " + affectedRows);
-                if (affectedRows == 0) {
-                    System.out.printf("%d번 게시물은 없습니다.\n", id);
-                } else {
-                    System.out.printf("%d번 게시물이 삭제되었습니다.\n", id);
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
+            if (articleMap.isEmpty()) {
+                System.out.println(id + "번 글은 없습니다.");
+                return 0;
             }
 
+            sql = new SecSql();
+            sql.append("DELETE FROM article");
+            sql.append("WHERE id = ?", id);
+
+            DBUtil.delete(conn, sql);
+
+            System.out.println(id + "번 글이 삭제되었습니다.");
 
         } else {
             System.out.println("잘못된 명령어");
@@ -201,71 +207,6 @@ public class App {
         return 0;
     }
 
-    public List<Article> getArticleList(Connection conn) {
-        List<Article> articles = new ArrayList<>();
-
-        // 조회...
-        // 실행할 쿼리
-        String sql = "SELECT id, regDate, updateDate, title, `body`\n" + "FROM article;";
-        //Statement 생성 후 실행할 쿼리정보 등록
-        PreparedStatement pstmt = null;
-        try {
-            pstmt = conn.prepareStatement(sql);
-            //결과를 담을 ResultSet 생성 후 결과 담기
-            ResultSet rs = pstmt.executeQuery();
-
-            while (rs.next()) {
-                Article rsArticle = new Article();
-
-                rsArticle.setId(rs.getInt("id"));
-                rsArticle.setRegDate(rs.getString("regDate"));
-                rsArticle.setUpdateDate(rs.getString("updateDate"));
-                rsArticle.setTitle(rs.getString("title"));
-                rsArticle.setBody(rs.getString("body"));
-
-                articles.add(rsArticle);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-
-        return articles;
-    }
-
-    public List<Article> getArticleList(Connection conn, int id) {
-        List<Article> articles = new ArrayList<>();
-
-        // 조회...
-        // 실행할 쿼리
-        String sql = "SELECT id, regDate, updateDate, title, `body`\n" + "FROM article" + " WHERE id = " + id + ";\n";
-        //Statement 생성 후 실행할 쿼리정보 등록
-        PreparedStatement pstmt = null;
-        try {
-            pstmt = conn.prepareStatement(sql);
-            //결과를 담을 ResultSet 생성 후 결과 담기
-            ResultSet rs = pstmt.executeQuery();
-
-            while (rs.next()) {
-                Article rsArticle = new Article();
-
-                rsArticle.setId(rs.getInt("id"));
-                rsArticle.setRegDate(rs.getString("regDate"));
-                rsArticle.setUpdateDate(rs.getString("updateDate"));
-                rsArticle.setTitle(rs.getString("title"));
-                rsArticle.setBody(rs.getString("body"));
-
-                articles.add(rsArticle);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-
-        return articles;
-    }
 }
 
 
