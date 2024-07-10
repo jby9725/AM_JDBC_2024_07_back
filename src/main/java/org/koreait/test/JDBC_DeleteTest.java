@@ -1,8 +1,12 @@
-package org.koreait;
+package org.koreait.test;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.Scanner;
 
-public class JDBC_InsertTest {
+public class JDBC_DeleteTest {
 
     public static void main(String[] args) {
         Connection conn = null;
@@ -15,16 +19,31 @@ public class JDBC_InsertTest {
             conn = DriverManager.getConnection(url, "root", "");
             System.out.println("연결 성공!");
 
-            // 데이터 삽입..
-            String sql = "INSERT INTO article\n" +
-                    "SET regDate = NOW(),\n" +
-                    "    updateDate = NOW(),\n" +
-                    "    title = CONCAT('제목', SUBSTRING(RAND() * 1000 FROM 1 FOR 2)),\n" +
-                    "    `body` = CONCAT('내용', SUBSTRING(RAND() * 1000 FROM 1 FOR 2));";
+            // 데이터 삭제..
+            Scanner scanner = new Scanner(System.in);
+            System.out.print("삭제할 게시물의 id : ");
+            int id = scanner.nextInt();
+            scanner.nextLine();
 
-            PreparedStatement pstmt = conn.prepareStatement(sql);
+            String sql = "DELETE FROM article WHERE id = " + id + ";";
+//            System.out.println("Delete) sql : " + sql);
+
+            // Statement 생성 후 실행할 쿼리정보 등록
+            PreparedStatement pstmt = null;
+            pstmt = conn.prepareStatement(sql);
             int affectedRows = pstmt.executeUpdate(); // 적용된 열의 수
             pstmt.close();
+
+            System.out.println("Delete) data affected: " + affectedRows);
+            if(affectedRows == 0) {
+                System.out.printf("%d번 게시물은 없습니다.\n", id);
+            }
+            else {
+                System.out.printf("%d번 게시물이 삭제되었습니다.\n", id);
+            }
+
+
+
 
         } catch (ClassNotFoundException e) {
             System.out.println("드라이버 로딩 실패" + e);
@@ -41,5 +60,4 @@ public class JDBC_InsertTest {
         }
 
     }
-
 }

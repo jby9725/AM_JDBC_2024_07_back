@@ -1,4 +1,4 @@
-package org.koreait;
+package org.koreait.test;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -6,7 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Scanner;
 
-public class JDBC_DeleteTest {
+public class JDBC_UpdateTest {
 
     public static void main(String[] args) {
         Connection conn = null;
@@ -19,31 +19,39 @@ public class JDBC_DeleteTest {
             conn = DriverManager.getConnection(url, "root", "");
             System.out.println("연결 성공!");
 
-            // 데이터 삭제..
             Scanner scanner = new Scanner(System.in);
-            System.out.print("삭제할 게시물의 id : ");
+            System.out.print("수정할 게시물의 id : ");
             int id = scanner.nextInt();
             scanner.nextLine();
+            System.out.print("새 게시물의 제목 : ");
+            String title = scanner.nextLine();
+            System.out.print("새 게시물의 내용 : ");
+            String body = scanner.nextLine();
 
-            String sql = "DELETE FROM article WHERE id = " + id + ";";
-//            System.out.println("Delete) sql : " + sql);
+            System.out.println("title = " + title);
+            System.out.println("body = " + body);
 
-            // Statement 생성 후 실행할 쿼리정보 등록
-            PreparedStatement pstmt = null;
-            pstmt = conn.prepareStatement(sql);
+            // 데이터 수정..
+            // 실행할 쿼리
+            String sql = "UPDATE article SET" +
+                    " `title` = '" + title + "', `body` = '" + body + "', updateDate = NOW() WHERE id = " + id + ";";
+
+            System.out.println("수정 sql : " + sql);
+
+            PreparedStatement pstmt = conn.prepareStatement(sql);
             int affectedRows = pstmt.executeUpdate(); // 적용된 열의 수
-            pstmt.close();
 
-            System.out.println("Delete) data affected: " + affectedRows);
             if(affectedRows == 0) {
+//                System.out.println("영향X");
                 System.out.printf("%d번 게시물은 없습니다.\n", id);
             }
             else {
-                System.out.printf("%d번 게시물이 삭제되었습니다.\n", id);
+                System.out.printf("%d번 게시물이 수정되었습니다.\n", id);
+//                System.out.println("영향O");
+//                System.out.println("affectedRows = " + affectedRows);
             }
 
-
-
+            pstmt.close();
 
         } catch (ClassNotFoundException e) {
             System.out.println("드라이버 로딩 실패" + e);
@@ -60,4 +68,6 @@ public class JDBC_DeleteTest {
         }
 
     }
+
+
 }

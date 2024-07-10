@@ -1,4 +1,4 @@
-package org.koreait;
+package org.koreait.test;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
