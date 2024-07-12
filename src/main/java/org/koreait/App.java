@@ -1,5 +1,6 @@
 package org.koreait;
 
+import org.koreait.controller.Controller;
 import org.koreait.util.DBUtil;
 import org.koreait.util.SecSql;
 
@@ -8,7 +9,6 @@ import java.util.*;
 
 public class App {
 
-    Scanner scanner = new Scanner(System.in);
     String cmd = "";
     int sys_status = 0;
 
@@ -17,11 +17,11 @@ public class App {
     String password = "";
     Connection conn = null;
     PreparedStatement pstmt = null;
+    Controller controller;
 
     public void run() {
 
         System.out.println("== ArticleManager 프로그램 실행 ==");
-
 
         try {
             Class.forName("org.mariadb.jdbc.Driver");
@@ -43,9 +43,9 @@ public class App {
 
         while (sys_status == 0) {
             System.out.print("명령어 > ");
-            cmd = scanner.nextLine().trim();
+            cmd = Container.getScanner().nextLine().trim();
 
-            int artionResult = doAction(conn, scanner, cmd);
+            int artionResult = doAction(conn, cmd);
 
             if (artionResult == -1) {
                 sys_status = -1;
@@ -57,17 +57,17 @@ public class App {
 
     }
 
-    public int doAction(Connection conn, Scanner scanner, String cmd) {
+    public int doAction(Connection conn, String cmd) {
         if (cmd.equals("exit")) {
             return -1;
         }
 
-        ///////////////////////////////////////// article
+        ///////////////////////////////////////// article /////////////////////////////////
         if (cmd.equals("article write")) {
             System.out.print("제목 : ");
-            String title = scanner.nextLine();
+            String title = Container.getScanner().nextLine();
             System.out.print("내용 : ");
-            String body = scanner.nextLine();
+            String body = Container.getScanner().nextLine();
 
             // 데이터 삽입..
             SecSql sql = new SecSql();
@@ -109,8 +109,8 @@ public class App {
 
         } else if (cmd.equals("article detail")) {
             System.out.print("자세히 볼 게시물의 id : ");
-            int id = scanner.nextInt();
-            scanner.nextLine();
+            int id = Container.getScanner().nextInt();
+            Container.getScanner().nextLine();
 
             // 조회...
             SecSql sql = new SecSql();
@@ -138,8 +138,8 @@ public class App {
         } else if (cmd.equals("article modify")) {
 
             System.out.print("수정할 게시물의 id : ");
-            int id = scanner.nextInt();
-            scanner.nextLine();
+            int id = Container.getScanner().nextInt();
+            Container.getScanner().nextLine();
 
             // 조회...
             SecSql sql = new SecSql();
@@ -155,9 +155,9 @@ public class App {
             }
 
             System.out.print("새 게시물의 제목 : ");
-            String title = scanner.nextLine();
+            String title = Container.getScanner().nextLine();
             System.out.print("새 게시물의 내용 : ");
-            String body = scanner.nextLine();
+            String body = Container.getScanner().nextLine();
 
             sql = new SecSql();
             sql.append("UPDATE article");
@@ -175,8 +175,8 @@ public class App {
         } else if (cmd.equals("article delete")) {
 
             System.out.print("삭제할 게시물의 id : ");
-            int id = scanner.nextInt();
-            scanner.nextLine();
+            int id = Container.getScanner().nextInt();
+            Container.getScanner().nextLine();
 
             SecSql sql = new SecSql();
             sql.append("SELECT *");
@@ -204,42 +204,20 @@ public class App {
 
             String userId = null;
             String password = null;
+            String pwdConfirm = null;
             String nickname = null;
-            boolean is_id_ok = false;
-            boolean is_password_ok = false;
-            boolean is_nickname_ok = false;
 
-            System.out.print("사용자 아이디 : ");
-            userId = scanner.nextLine();
-            if (!Objects.equals(userId, "") && !userId.contains(" "))
-                is_id_ok = true;
-            System.out.print("사용자 비밀번호 : ");
-            password = scanner.nextLine();
-            if (!Objects.equals(password, "") && !password.contains(" "))
-                is_password_ok = true;
-            System.out.print("사용자 닉네임 : ");
-            nickname = scanner.nextLine();
-            if (!Objects.equals(nickname, "") && !nickname.contains(" "))
-                is_nickname_ok = true;
+            while (true) {
+                System.out.print("사용자 아이디 : ");
+                userId = Container.getScanner().nextLine().trim();
 
-
-            // 아이디 공백인지 검사...
-            if (!is_id_ok) {
-                while (true) {
+                if (userId.length() == 0 || userId.contains(" ")) {
                     System.out.println("아이디 재입력 필요");
-                    System.out.print("사용자 아이디 : ");
-                    userId = scanner.nextLine();
-                    if (!Objects.equals(userId, "") && !userId.contains(" ")) {
-                        is_id_ok = true;
-                        break;
-                    }
+                    continue;
                 }
-            }
 
-
-            // 아이디가 중복인지 체크....
-            boolean is_id_unique = false;
-            do {
+                // 아이디가 중복인지 체크....
+                boolean is_id_unique = false;
                 SecSql sql = new SecSql();
                 sql.append("SELECT *");
                 sql.append("FROM `member`");
@@ -255,46 +233,49 @@ public class App {
                 if (!is_id_unique) {
                     System.out.println("해당 아이디가 이미 있습니다.");
                     System.out.println("아이디를 다시 입력 받습니다.");
-                    System.out.print("사용자 아이디 : ");
-                    userId = scanner.nextLine();
+                    continue;
                 }
-            } while (!is_id_unique);
-
-            // 비밀번호 공백인지 검사...
-            if (!is_password_ok) {
-                while (true) {
-                    System.out.println("비밀번호 재입력 필요");
-                    System.out.print("사용자 비밀번호 : ");
-                    password = scanner.nextLine();
-                    if (password != "" && !password.contains(" ")) {
-                        is_password_ok = true;
-                        break;
-                    }
-                }
+                break;
             }
 
-            // 비밀번호 입력했던 것을 한번 더 입력해보기....
             while (true) {
-                System.out.println("== 비밀번호 재확인 ==");
                 System.out.print("사용자 비밀번호 : ");
-                String re_password = scanner.nextLine();
-                if (password.equals(re_password))
+                password = Container.getScanner().nextLine().trim();
+
+                if (password.length() == 0 || password.contains(" ")) {
+                    System.out.println("비밀번호 재입력 필요");
+                    continue;
+                }
+
+                boolean loginPwdCheck = true;
+
+                while (true) {
+                    System.out.print("사용자 비밀번호 확인 : ");
+                    pwdConfirm = Container.getScanner().nextLine();
+                    if (pwdConfirm.length() == 0 || pwdConfirm.contains(" ")) {
+                        System.out.println("확인 비밀번호 재입력 필요");
+                        continue;
+                    }
+
+                    if (!pwdConfirm.equals(password)) {
+                        loginPwdCheck = false;
+                    }
                     break;
-                else
-                    System.out.println("틀렸습니다. 다시 입력하세요.");
+                }
+                if (loginPwdCheck) {
+                    break;
+                }
+
             }
 
-            // 닉네임이 비어있는지 확인...
-            if (!is_nickname_ok) {
-                while (true) {
+            while (true) {
+                System.out.print("사용자 닉네임 : ");
+                nickname = Container.getScanner().nextLine();
+                if (nickname.length() == 0 || nickname.contains(" ")) {
                     System.out.println("닉네임 재입력 필요");
-                    System.out.print("사용자 닉네임 : ");
-                    nickname = scanner.nextLine();
-                    if (nickname != "" && !nickname.contains(" ")) {
-                        is_nickname_ok = true;
-                        break;
-                    }
+                    continue;
                 }
+                break;
             }
 
             // 데이터 삽입..
