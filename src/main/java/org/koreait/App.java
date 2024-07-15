@@ -1,11 +1,15 @@
 package org.koreait;
 
+import org.koreait.controller.ArticleController;
 import org.koreait.controller.Controller;
+import org.koreait.controller.MemberController;
 import org.koreait.util.DBUtil;
 import org.koreait.util.SecSql;
 
 import java.sql.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class App {
 
@@ -41,11 +45,14 @@ public class App {
 //            throw new RuntimeException(e);
         }
 
+        controller = new Controller();
+
         while (sys_status == 0) {
             System.out.print("명령어 > ");
             cmd = Container.getScanner().nextLine().trim();
 
-            int artionResult = doAction(conn, cmd);
+            int artionResult = controller.doAction(conn, cmd);
+            // int artionResult = action(conn, cmd);
 
             if (artionResult == -1) {
                 sys_status = -1;
@@ -57,10 +64,15 @@ public class App {
 
     }
 
-    public int doAction(Connection conn, String cmd) {
+
+    public int action(Connection conn, String cmd) {
         if (cmd.equals("exit")) {
             return -1;
         }
+        ///////////////////////////////////////// Controller /////////////////////////////////
+
+        MemberController memberController = new MemberController(conn);
+        ArticleController articleController = new ArticleController();
 
         ///////////////////////////////////////// article /////////////////////////////////
         if (cmd.equals("article write")) {
@@ -200,7 +212,9 @@ public class App {
 
             //////////////////////////////// member //////////////////////////////////////////
         } else if (cmd.equals("member join")) {
-            System.out.println("== 회원가입 ==");
+            memberController.doJoin();
+            /*
+            *             System.out.println("== 회원가입 ==");
 
             String userId = null;
             String password = null;
@@ -288,6 +302,7 @@ public class App {
 
             int id = DBUtil.insert(conn, sql);
             System.out.println(id + "번 멤버가 생성되었습니다.");
+            * */
 
         } else {
             System.out.println("잘못된 명령어");
